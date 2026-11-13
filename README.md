@@ -1,71 +1,79 @@
-# Hackathon Project README
+# AI Rentgenová diagnostika (429tmrob)
 
-## Projektový kontext
-Tento repozitář slouží jako základ pro studentský hackathonový projekt na České AI Olympiádě 2026, Moravskoslezský kraj, okresní kolo. Cílem je vytvořit funkční, hmatatelné řešení pro reálného uživatele nebo byznys zákazníka, nikoli pouze teoretický prototyp.
+Webová full-stack aplikace pro asistovanou analýzu a detekci fraktur na rentgenových snímcích. Projekt vznikl v rámci České AI Olympiády 2026 (okresní kolo, Moravskoslezský kraj).
 
-## Role a přístup
-Projekt je veden jako elitní full-stack AI hackathonová aplikace s důrazem na:
-- rychlý vývoj a pragmatickou architekturu
-- modulární a přehledný kód
-- reálné demo připravené pro porotu
-- co nejmenší zbytečné overengineering
+Systém kombinuje počítačové vidění pro detekci fraktur s jazykovým modelem pro generování strukturované lékařské zprávy v přirozeném jazyce.
 
-## Technologický stack
+## Architektura
 
-### Backend
-- Python
-- FastAPI
-- pandas pro čištění a zpracování dat
-- uv pro správu balíčků a prostředí
+- **Backend:** FastAPI, Python 3.11+, `uv` package manager
+- **Detekční model:** Ultralytics YOLOv8 (`backend/ai_model.pt`) pro lokalizaci a klasifikaci fraktur
+- **Interpretace nálezů:** Groq API (Llama 3 / Mixtral) pro generování srozumitelného souhrnu pro lékaře i pacienta
+- **Frontend:** React, TypeScript, Vite, Tailwind CSS, Lucide ikony
+- **Reverzní proxy:** Caddy (automatické HTTPS, směrování API a statických souborů)
 
-### AI/ML vrstva
-- PyTorch / ResNet18
-- scikit-learn / XGBoost pro predikci tabulkových dat
-- oficiální LLM SDK pro lidskou interpretaci výsledků
+## Struktura repozitáře
 
-### Frontend
-- React
-- Tailwind CSS
-- shadcn UI
-- lucide-react
-- recharts pro vizualizaci grafů
-- react-leaflet pro mapy
+```text
+429tmrob/
+├── backend/
+│   ├── main.py          # FastAPI server, inference pipeline, Groq integrace
+│   ├── ai_model.pt      # Natrénovaný YOLO detekční model
+│   ├── images/          # Ukázkové rentgenové snímky
+│   └── uploads/         # Dočasné úložiště nahraných snímků
+├── frontend/
+│   ├── src/             # React komponenty, stav a UI
+│   └── package.json
+├── Caddyfile            # Konfigurace reverzní proxy
+├── docker-compose.yml   # Kontejnerizace služeb
+└── README.md
+```
 
-### Kvalita kódu a nástroje
-- Dotenvx pro bezpečné šifrování konfigurace a proměnných prostředí
-- ruff pro linting Python kódu
-- Biome pro linting JavaScript/TypeScript
+## Lokální spuštění
 
-## Porotní kontext
+### Požadavky
+- Python 3.11+ a správce balíčků `uv`
+- Node.js 18+ a `npm`
+- Groq API klíč (volitelný pro textovou interpretaci)
 
-### nvias, z.s.
-Porota hledá startupový mindset, edukativní přesah a reálný produkt. Základní požadavky:
-- fungující demo
-- jasně definovaný uživatel / zákazník
-- co nejmenší abstrakce a co nejvíce praktické hodnoty
+### 1. Backend
 
-### Tietoevry
-Hostitel hodnotí zejména B2B řešení s potenciálem pro:
-- Smart City
-- Průmysl 4.0
-- Green IT a ESG
-- zdravotnictví
+```bash
+cd backend
 
-Řešení musí být škálovatelné a profesionální, ne pouze "hračka pro spotřebitele".
+# Nastavení prostředí a spuštění serveru
+uv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
 
-## Pravidla vývoje
-- Piš kód co nejvíce modulárně a pragmaticky.
-- Drž se rychlého hackathonového rytmu.
-- Přizpůsobuj architekturu tomu, co je reálně potřeba daný den.
-- Neupínej se dogmaticky na předchozí zadání; ber je jako kontext, ne jako pevný plán.
+Při prvním spuštění vytvořte v kořeni projektu soubor `.env`:
+```env
+GROQ_API_KEY=your_groq_api_key_here
+```
 
-## Doporučený postup
-1. Definuj uživatelský problém a cílovou hodnotu.
-2. Vyber nejdůležitější MVP funkce.
-3. Nastav backend FastAPI a datovou pipeline.
-4. Připrav frontendovou ukázku s vizualizací a mapami.
-5. Validuj řešení podle porotního kontextu.
-6. Testuj offline i online demonstrace.
+### 2. Frontend
 
-## Poznámka k dokumentaci
-Veškerá dokumentace, projektové plány a návrhy je vhodné psát jasně, strukturovaně a v Markdownu. Pokud vkládáš příklady kódu, použij bloky kódu s oddělovačem ~~~ v rámci dokumentů, abys zachoval syntaktickou integritu při dodržení interních pravidel.
+```bash
+cd frontend
+
+npm install
+npm run dev
+```
+
+Aplikace bude dostupná na `http://localhost:5173`.
+
+### 3. Spuštění přes Docker Compose
+
+```bash
+docker-compose up --build
+```
+
+## Hlavní funkce
+
+1. **Nahrání snímku:** Podpora formátů JPEG, PNG i DICOM exportů.
+2. **Inference v reálném čase:** YOLO model provede lokalizaci podezření na frakturu a vrátí souřadnice bounding boxu a úroveň spolehlivosti.
+3. **Strukturovaný lékařský report:** Groq LLM vygeneruje souhrn nálezu s doporučeným postupem dalšího vyšetření.
+4. **Interaktivní prohlížeč snímků:** Možnost vizuálního porovnání původního a anotovaného rentgenu.
+
+## Licence
+
+MIT
